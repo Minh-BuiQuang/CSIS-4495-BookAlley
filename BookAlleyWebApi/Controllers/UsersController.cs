@@ -83,7 +83,7 @@ namespace BookAlleyWebApi.Controllers
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = newUser.Id }, user);
+            return CreatedAtAction("SignUp", new { id = newUser.Id }, user);
         }
 
         private bool UserExists(string email)
