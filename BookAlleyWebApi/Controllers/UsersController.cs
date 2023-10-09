@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookAlleyWebApi.Models;
+using BookAlleyWebApi.RestModels;
 
 namespace BookAlleyWebApi.Controllers
 {
@@ -20,112 +21,74 @@ namespace BookAlleyWebApi.Controllers
             _context = context;
         }
 
-        // GET: api/Users
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            return Task.Run(() => {
-                List<User> users = new()
-                {
-                    new User { Id = 1, Name = "User 1", Password = "aaa", Email = "" }
-                };
-                return users;
-            }).Result;
-
-            //return await _context.Users.ToListAsync();
-        }
-
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
-        {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
-        {
-          if (_context.Users == null)
-          {
-              return Problem("Entity set 'UserContext.Users'  is null.");
-          }
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
-        }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(long id)
+        // POST: api/Users/5
+        [HttpPost("signin")]
+        public async Task<ActionResult<Guid>> SignIn([FromBody] SignIn user)
         {
             if (_context.Users == null)
             {
                 return NotFound();
             }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var userFromDB = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email && u.Password == user.Password);
+            var users = _context.Users.ToList();
+            Console.WriteLine(users);
+            if (userFromDB == null)
             {
                 return NotFound();
             }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            //Create and return a new session token. Client must store this session token to  be used in future requests.
+            SessionToken sessionToken = new() { User = userFromDB, Id = Guid.NewGuid() };
+            _context.SessionTokens.Add(sessionToken);
+            _context.SaveChanges();
 
-            return NoContent();
+            return sessionToken.Id;
+        }
+        [HttpPost("signout")]
+
+        public async Task<ActionResult<Guid>> SignOut(string sessionToken)
+        {
+            if (_context.SessionTokens == null)
+            {
+                return NotFound();
+            }
+            //Check and delete the session token from DB. The client should signout regardless of the result of this check.
+            var sessionTokenFromDB = await _context.SessionTokens.FirstOrDefaultAsync(st => st.Id.ToString() == sessionToken);
+            if (sessionTokenFromDB == null)
+            {
+                return NotFound();
+            }
+            _context.SessionTokens.Remove(sessionTokenFromDB);
+            _context.SaveChanges();
+            return Ok();
         }
 
-        private bool UserExists(long id)
+        // POST: api/Users
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<User>> SignUp(SignUp user)
         {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
+            if (_context.Users == null)
+            {
+                return Problem("Entity set 'UserContext.Users'  is null.");
+            }
+
+            //Check if email is already in use
+            if (UserExists(user.Email))
+            {
+                return Conflict("Email already in use.");
+            }
+
+            var newUser = new User { Name = user.Name, Email = user.Email, Password = user.Password };
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetUser", new { id = newUser.Id }, user);
+        }
+
+        private bool UserExists(string email)
+        {
+            return (_context.Users?.Any(e => e.Email == email)).GetValueOrDefault();
         }
     }
 }
