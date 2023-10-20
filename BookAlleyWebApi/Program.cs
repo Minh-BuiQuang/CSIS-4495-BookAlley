@@ -1,5 +1,5 @@
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using BookAlleyWebApi.Models;
 
 namespace BookAlleyWebApi
@@ -12,17 +12,8 @@ namespace BookAlleyWebApi
 
             // Add services to the container.
             builder.Services.AddControllers();
-            var connection = String.Empty;
-            if (builder.Environment.IsDevelopment())
-            {
-                builder.Configuration.AddUserSecrets<Program>();
-                connection = builder.Configuration.GetConnectionString("AzureConnectionString");
-            }
-            else
-            {
-                connection = Environment.GetEnvironmentVariable("AzureConnectionString");
-            }
-
+            var connection = ConfigurationExtensions.GetConnectionString(builder.Configuration, "AzureConnectionString");
+            Console.WriteLine($"Connection String: {connection}");
             builder.Services.AddDbContext<BookAlleyContext>(options =>
                 options.UseSqlServer(connection));
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 using BookAlleyWebApi.Models;
 using BookAlleyWebApi.RestModels;
 
@@ -23,16 +24,17 @@ namespace BookAlleyWebApi.Controllers
 
         // POST: api/Users/5
         [HttpPost("signin")]
-        public async Task<ActionResult<Guid>> SignIn([FromBody] SignIn user)
+        public async Task<ActionResult> SignIn([FromBody] SignIn user)
         {
             if (_context.Users == null)
             {
                 return NotFound();
             }
-            var userFromDB = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email && u.Password == user.Password);
-            var users = _context.Users.ToList();
-            Console.WriteLine(users);
+            var userFromDB = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
             if (userFromDB == null)
+            {
+                return NotFound();
+            } else if (!BCrypt.Net.BCrypt.Verify(user.Password, userFromDB.Password))
             {
                 return NotFound();
             }
@@ -42,11 +44,11 @@ namespace BookAlleyWebApi.Controllers
             _context.SessionTokens.Add(sessionToken);
             _context.SaveChanges();
 
-            return sessionToken.Id;
+            return Ok(new { sessionToken = sessionToken.Id });
         }
         [HttpPost("signout")]
 
-        public async Task<ActionResult<Guid>> SignOut(string sessionToken)
+        public async Task<ActionResult> SignOut(string sessionToken)
         {
             if (_context.SessionTokens == null)
             {
@@ -60,13 +62,13 @@ namespace BookAlleyWebApi.Controllers
             }
             _context.SessionTokens.Remove(sessionTokenFromDB);
             _context.SaveChanges();
-            return Ok();
+            return Ok(new { message = "Sign out successful"});
         }
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> SignUp(SignUp user)
+        public async Task<ActionResult> SignUp(SignUp user)
         {
             if (_context.Users == null)
             {
@@ -78,12 +80,14 @@ namespace BookAlleyWebApi.Controllers
             {
                 return Conflict("Email already in use.");
             }
+            string salt = BCrypt.Net.BCrypt.GenerateSalt();
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password, salt);
 
-            var newUser = new User { Name = user.Name, Email = user.Email, Password = user.Password };
+            var newUser = new User { Name = user.Name, Email = user.Email, Password = hashedPassword };
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("SignUp", new { id = newUser.Id }, user);
+            return CreatedAtAction("SignUp", new { message = "Sign up successful" });
         }
 
         private bool UserExists(string email)
