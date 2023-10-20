@@ -44,7 +44,7 @@ namespace BookAlleyWebApi.Controllers
             _context.SessionTokens.Add(sessionToken);
             _context.SaveChanges();
 
-            return Ok(new { sessionToken = sessionToken.Id });
+            return Ok(new { sessionToken = sessionToken.Id, name = userFromDB.Name, email = userFromDB.Email });
         }
         [HttpPost("signout")]
 
