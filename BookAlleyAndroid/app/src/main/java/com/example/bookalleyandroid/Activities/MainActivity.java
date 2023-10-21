@@ -46,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
 
         validateSessionToken();
 
+        binding.imageButton.setOnClickListener(v -> {
+            startActivity(new Intent(this, PostingActivity.class));
+        });
+
         binding.conversationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         //Mock up conversation
 

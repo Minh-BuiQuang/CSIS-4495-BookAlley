@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Book Alley Android</string>
+    <string name="app_name">Book Alley</string>
     <string name="book_alley_api">bookalleywebapi-app-202310071428.thankfulsky-ad891e59.westus.azurecontainerapps.io</string>
     <string name="preference_key">BookAlleyPreferences</string>
 </resources>
