@@ -4,6 +4,7 @@ using BookAlleyWebApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookAlleyWebApi.Migrations
 {
     [DbContext(typeof(BookAlleyContext))]
-    partial class BookAlleyContextModelSnapshot : ModelSnapshot
+    [Migration("20231102021248_mssql.azure_migration_719")]
+    partial class mssqlazure_migration_719
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -88,8 +91,9 @@ namespace BookAlleyWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTimeOffset>("DatePosted")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<string>("DatePosted")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ISBN")
                         .HasColumnType("nvarchar(max)");
@@ -99,9 +103,6 @@ namespace BookAlleyWebApi.Migrations
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("PosterId")

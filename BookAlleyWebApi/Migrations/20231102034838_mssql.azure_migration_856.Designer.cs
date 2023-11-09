@@ -4,6 +4,7 @@ using BookAlleyWebApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookAlleyWebApi.Migrations
 {
     [DbContext(typeof(BookAlleyContext))]
-    partial class BookAlleyContextModelSnapshot : ModelSnapshot
+    [Migration("20231102034838_mssql.azure_migration_856")]
+    partial class mssqlazure_migration_856
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,9 +102,6 @@ namespace BookAlleyWebApi.Migrations
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("PosterId")
