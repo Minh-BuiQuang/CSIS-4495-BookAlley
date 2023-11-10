@@ -161,7 +161,7 @@ public class SignInActivity extends AppCompatActivity {
                     editor.apply();
                     //Go to main activity
                     startActivity(new Intent(SignInActivity.this, MainActivity.class));
-
+                    finish();
                 } catch (JSONException e) {
                     Log.e("Sign In Request", "onResponse: ", e);
                 }

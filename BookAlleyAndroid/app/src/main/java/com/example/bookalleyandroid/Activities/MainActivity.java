@@ -206,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSignInActivity() {
         startActivity(new Intent(this,SignInActivity.class));
+        finish();
     }
 
     private void logout() {
