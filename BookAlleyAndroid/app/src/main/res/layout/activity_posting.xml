@@ -48,8 +48,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/isbnEditText" />
 
-    <EditText
-        android:id="@+id/cityEditText"
+    <AutoCompleteTextView
+        android:id="@+id/cityTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"

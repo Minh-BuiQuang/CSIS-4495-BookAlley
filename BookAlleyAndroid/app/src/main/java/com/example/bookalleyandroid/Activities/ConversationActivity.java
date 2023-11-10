@@ -28,6 +28,8 @@ public class ConversationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityConversationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        getSupportActionBar().setTitle("Conversations");
+
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
 
         binding.conversationRecyclerView.setLayoutManager(new LinearLayoutManager(this));

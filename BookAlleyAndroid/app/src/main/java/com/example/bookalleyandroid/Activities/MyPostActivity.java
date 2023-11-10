@@ -38,6 +38,8 @@ public class MyPostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMyPostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        getSupportActionBar().setTitle("My Posts");
+
         binding.myPostRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         getPosts();
