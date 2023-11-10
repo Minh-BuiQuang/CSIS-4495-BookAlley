@@ -153,9 +153,11 @@ public class SignInActivity extends AppCompatActivity {
                 try {
                     //Store sessionToken
                     String sessionToken = response.getString("sessionToken");
+                    Long userId = response.getLong("id");
                     SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("SESSION_TOKEN",sessionToken);
+                    editor.putLong("USER_ID", userId);
                     editor.apply();
                     //Go to main activity
                     startActivity(new Intent(SignInActivity.this, MainActivity.class));

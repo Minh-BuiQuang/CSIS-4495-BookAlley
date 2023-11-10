@@ -41,12 +41,12 @@ namespace BookAlleyWebApi.Controllers
                 {
                     return Problem("User not found, please login");
                 }
-                posts = await _context.Posts.Where(p => p.Poster.Id == user.Id).ToListAsync();
+                posts = await _context.Posts.Where(p => p.Poster.Id == user.Id).Include(p => p.Poster).ToListAsync();
             }
             else 
             {
                 //Get available posts. Used when user wants to browse posts by others
-                posts = await _context.Posts.ToListAsync();
+                posts = await _context.Posts.Include(p => p.Poster).ToListAsync();
             }
             var results = posts.Select(x => new PostResponse()
             {

@@ -9,22 +9,33 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.bookalleyandroid.Models.Conversation;
 import com.example.bookalleyandroid.Models.Message;
+import com.example.bookalleyandroid.Models.Post;
 import com.example.bookalleyandroid.R;
 import com.example.bookalleyandroid.RecyclerViews.ConversationAdapter;
+import com.example.bookalleyandroid.RecyclerViews.PostAdapter;
+import com.example.bookalleyandroid.Utilities.Constance;
 import com.example.bookalleyandroid.Utilities.VolleySingleton;
 import com.example.bookalleyandroid.databinding.ActivityMainBinding;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.time.OffsetDateTime;
@@ -35,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     ActivityMainBinding binding;
     private RequestQueue requestQueue;
-    ArrayList<Conversation> conversations = new ArrayList<>();
+    ArrayList<Post> posts = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,37 +60,125 @@ public class MainActivity extends AppCompatActivity {
         binding.imageButton.setOnClickListener(v -> {
             startActivity(new Intent(this, PostingActivity.class));
         });
+        binding.postRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.bookSearchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        binding.conversationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        //Mock up conversation
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-        conversations.add(new Conversation(){
-            {
-                Id = UUID.randomUUID().toString();
-                PosterName = "John";
-                Messages.add(new Message(){
-                    {
-                        Content = "Hi. Is your book still available?";
-                        TimeStamp = OffsetDateTime.parse("2017-07-15T10:52:59Z");
-                    }
-                });
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterPosts();
             }
         });
-        conversations.add(new Conversation(){
-            {
-                Id = UUID.randomUUID().toString();
-                PosterName = "Mike";
-                Messages.add(new Message(){
-                    {
-                        Content = "Hi. I saw your posting for a book I'm looking for.";
-                        TimeStamp = OffsetDateTime.parse("2017-07-15T12:55:51Z");
-                    }
-                });
+        binding.locationTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterPosts();
             }
         });
-        ConversationAdapter adapter = new ConversationAdapter(MainActivity.this, conversations);
-        binding.conversationRecyclerView.setAdapter(adapter);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, Constance.Cities);
+        binding.locationTextView.setThreshold(1);
+        binding.locationTextView.setAdapter(adapter);
+    }
+
+    private void filterPosts() {
+        String searchText = binding.bookSearchEditText.getText().toString();
+        ArrayList<Post> keywordFilteredPosts = new ArrayList<>();
+        for (Post post : posts) {
+            if (post.BookTitle.toLowerCase().contains(searchText.toLowerCase()) ||
+                    post.Author.toLowerCase().contains(searchText.toLowerCase()) ||
+                    post.ISBN.toLowerCase().contains(searchText.toLowerCase())) {
+                keywordFilteredPosts.add(post);
+            }
+        }
+        ArrayList<Post> locationFilteredPosts = new ArrayList<>();
+        String location = binding.locationTextView.getText().toString();
+        if(!location.isEmpty()) {
+            for (Post post : keywordFilteredPosts) {
+                if (post.Location.toLowerCase().contains(location.toLowerCase())) {
+                    locationFilteredPosts.add(post);
+                }
+            }
+        } else {
+            locationFilteredPosts = keywordFilteredPosts;
+        }
+
+        PostAdapter adapter = new PostAdapter(MainActivity.this, locationFilteredPosts);
+        binding.postRecyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getPosts();
+    }
+
+    private void getPosts() {
+        //Send sign out request
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("https")
+                .authority(getString(R.string.book_alley_api))
+                .appendPath("api")
+                .appendPath("Posts");
+
+        String uri = builder.build().toString();
+        Log.d("Uri", "get book postings: " + uri);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, uri, null, new Response.Listener<JSONArray>(){
+            @Override
+            public void onResponse(JSONArray response) {
+                Log.d("Response", "onResponse: " + response.toString());
+                // Get user id
+                SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
+                Long userId = pref.getLong("USER_ID",0);
+
+                posts.clear();
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        JSONObject jsonObject = response.getJSONObject(i);
+                        //Skip posts created by current user
+                        if(jsonObject.getLong("posterId") == userId) continue;
+
+                        Post post = new Post();
+                        post.Id = jsonObject.getLong("id");
+                        post.PosterName = jsonObject.getString("posterName");
+                        post.PosterId = jsonObject.getLong("posterId");
+                        post.BookTitle = jsonObject.getString("bookTitle");
+                        post.Author = jsonObject.getString("author");
+                        post.ISBN = jsonObject.getString("isbn");
+                        post.Image = jsonObject.getString("image");
+                        post.Location = jsonObject.getString("location");
+                        post.Note = jsonObject.getString("note");
+                        post.DatePosted = OffsetDateTime.parse(jsonObject.getString("datePosted"));
+                        posts.add(post);
+                    } catch (JSONException e) {
+                        Log.e("Parsing Post error", "onResponse: " + e.getMessage());
+                    }
+                }
+                filterPosts();
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                try {
+                    String message = new String(error.networkResponse.data, "utf-8");
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    Log.d("Get Book Posting", "onErrorResponse: " + message);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.d("Get Book Posting", "onErrorResponse: " + e.getMessage());
+                }
+            }
+        });
+
+        requestQueue.add(request);
     }
 
     @Override
@@ -92,6 +191,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.logout_option) {
             logout();
+        } else if (item.getItemId() == R.id.chat) {
+            startActivity(new Intent(this, ConversationActivity.class));
+        } else if(item.getItemId() == R.id.profile) {
+            startActivity(new Intent(this, MyPostActivity.class));
         }
         return true;
     }
@@ -106,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Clear session token
+        // Get session token
         SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
         String sessionToken = pref.getString("SESSION_TOKEN","");
         //Send sign out request
@@ -132,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         // Clear session token and logout
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("SESSION_TOKEN",null);
+        editor.putLong("USER_ID",0);
         editor.apply();
         // Show login activity
         showSignInActivity();
