@@ -8,11 +8,9 @@ import android.os.Bundle;
 import com.android.volley.RequestQueue;
 import com.example.bookalleyandroid.Models.Conversation;
 import com.example.bookalleyandroid.Models.Message;
-import com.example.bookalleyandroid.R;
-import com.example.bookalleyandroid.RecyclerViews.ConversationAdapter;
+import com.example.bookalleyandroid.Adapters.ConversationAdapter;
 import com.example.bookalleyandroid.Utilities.VolleySingleton;
 import com.example.bookalleyandroid.databinding.ActivityConversationBinding;
-import com.example.bookalleyandroid.databinding.ActivityMainBinding;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;

@@ -24,12 +24,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.bookalleyandroid.Models.Conversation;
-import com.example.bookalleyandroid.Models.Message;
 import com.example.bookalleyandroid.Models.Post;
 import com.example.bookalleyandroid.R;
-import com.example.bookalleyandroid.RecyclerViews.ConversationAdapter;
-import com.example.bookalleyandroid.RecyclerViews.PostAdapter;
+import com.example.bookalleyandroid.Adapters.PostAdapter;
 import com.example.bookalleyandroid.Utilities.Constance;
 import com.example.bookalleyandroid.Utilities.VolleySingleton;
 import com.example.bookalleyandroid.databinding.ActivityMainBinding;
@@ -40,9 +37,10 @@ import org.json.JSONObject;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+import static com.example.bookalleyandroid.Utilities.Utilities.SortPostByDate;
+
+public class MainActivity extends AppCompatActivity implements PostAdapter.OnItemClickListener {
 
     ActivityMainBinding binding;
     private RequestQueue requestQueue;
@@ -111,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             locationFilteredPosts = keywordFilteredPosts;
         }
 
-        PostAdapter adapter = new PostAdapter(MainActivity.this, locationFilteredPosts);
+        PostAdapter adapter = new PostAdapter(MainActivity.this, locationFilteredPosts, MainActivity.this);
         binding.postRecyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
@@ -159,10 +157,12 @@ public class MainActivity extends AppCompatActivity {
                         post.Note = jsonObject.getString("note");
                         post.DatePosted = OffsetDateTime.parse(jsonObject.getString("datePosted"));
                         posts.add(post);
+                        SortPostByDate(posts);
                     } catch (JSONException e) {
                         Log.e("Parsing Post error", "onResponse: " + e.getMessage());
                     }
                 }
+
                 filterPosts();
             }
         }, new Response.ErrorListener(){
@@ -241,5 +241,8 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
         // Show login activity
         showSignInActivity();
+    }
+    public void onItemClick(Post post) {
+
     }
 }

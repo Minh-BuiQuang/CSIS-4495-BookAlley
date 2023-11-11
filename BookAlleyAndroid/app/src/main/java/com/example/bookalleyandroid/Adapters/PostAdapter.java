@@ -1,4 +1,4 @@
-package com.example.bookalleyandroid.RecyclerViews;
+package com.example.bookalleyandroid.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.bookalleyandroid.Models.Book;
 import com.example.bookalleyandroid.Models.Post;
 import com.example.bookalleyandroid.R;
 import com.squareup.picasso.Picasso;
@@ -23,9 +24,12 @@ import java.util.Locale;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     ArrayList<Post> posts;
     Context context;
-    public PostAdapter(Context context, ArrayList<Post> posts) {
+    private PostAdapter.OnItemClickListener onItemClickListener;
+
+    public PostAdapter(Context context, ArrayList<Post> posts, OnItemClickListener onItemClickListener) {
         this.posts = posts;
         this.context = context;
+        this.onItemClickListener = onItemClickListener;
     }
 
     @NonNull
@@ -50,8 +54,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         String formattedLocalDateTime = zonedDateTime.format(formatter);
         holder.timeTextView.setText(formattedLocalDateTime);
 
-        Picasso.get().load(post.Image).resize(400, 400)
+        String imagePath = post.Image;
+        if(!imagePath.contains("https")) {
+            imagePath = imagePath.replace("http", "https");
+        }
+        Picasso.get().load(imagePath ).resize(400, 400)
                 .centerInside().into(holder.coverImageView);
+        holder.view.setOnClickListener(v -> {
+            onItemClickListener.onItemClick(post);
+        });
     }
 
     @Override
@@ -74,5 +85,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             noteTextView = view.findViewById(R.id.noteTextView);
             coverImageView = view.findViewById(R.id.coverImageView);
         }
+    }
+    public interface OnItemClickListener {
+        void onItemClick(Post selectedItem);
     }
 }

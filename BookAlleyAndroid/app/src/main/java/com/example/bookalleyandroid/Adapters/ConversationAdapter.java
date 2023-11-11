@@ -1,4 +1,4 @@
-package com.example.bookalleyandroid.RecyclerViews;
+package com.example.bookalleyandroid.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,16 +9,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.cardview.widget.CardView;
 
 import com.example.bookalleyandroid.Activities.MessageActivity;
 import com.example.bookalleyandroid.Models.Conversation;
 import com.example.bookalleyandroid.R;
 
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapter.ViewHolder> {
     ArrayList<Conversation> conversations;

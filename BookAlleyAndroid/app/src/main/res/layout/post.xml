@@ -57,6 +57,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:maxLines="3"
             android:text="Book Title"
             app:layout_constraintStart_toEndOf="@+id/coverImageView"
             app:layout_constraintTop_toTopOf="@+id/coverImageView" />
@@ -76,6 +77,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:text="ISBN"
+            android:textColor="#919191"
             app:layout_constraintStart_toEndOf="@+id/coverImageView"
             app:layout_constraintTop_toBottomOf="@+id/authorTextView" />
 

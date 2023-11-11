@@ -127,12 +127,7 @@ namespace BookAlleyWebApi.Controllers
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
-
-        private bool PostExists(long id)
-        {
-            return (_context.Posts?.Any(e => e.Id == id)).GetValueOrDefault();
+            return Ok(new { message = "Post deleted" });
         }
     }
 }

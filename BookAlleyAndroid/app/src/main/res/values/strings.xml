@@ -2,4 +2,6 @@
     <string name="app_name">Book Alley</string>
     <string name="book_alley_api">bookalleywebapi-app-202310071428.thankfulsky-ad891e59.westus.azurecontainerapps.io</string>
     <string name="preference_key">BookAlleyPreferences</string>
+    <string name="google_book_api">www.googleapis.com</string>
+    <string name="google_book_api_key">AIzaSyANBbK9jTYlkzjygpbIM7_B5bWrx5myRHE</string>
 </resources>
