@@ -8,5 +8,6 @@
 
         public virtual User Poster { get; set; }
         public virtual User Finder { get; set; }
+        public virtual ICollection<Message> Messages { get; set; }
     }
 }

@@ -11,5 +11,6 @@
         public required string Location { get; set; }
         public string? Note { get; set;}
         public required DateTimeOffset DatePosted { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

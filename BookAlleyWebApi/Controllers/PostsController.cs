@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookAlleyWebApi.Models;
 using BookAlleyWebApi.RestModels;
+using Microsoft.Build.Framework;
 
 namespace BookAlleyWebApi.Controllers
 {
@@ -23,7 +24,7 @@ namespace BookAlleyWebApi.Controllers
 
         // GET: api/Posts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostResponse>>> GetPosts([FromQuery]Guid? SessionToken)
+        public async Task<ActionResult<IEnumerable<PostResponse>>> GetPosts([FromQuery]Guid? SessionToken, [FromBody] bool isStatisticRequest)
         {
             List<Post> posts = new();
 
@@ -45,8 +46,10 @@ namespace BookAlleyWebApi.Controllers
             }
             else 
             {
-                //Get available posts. Used when user wants to browse posts by others
-                posts = await _context.Posts.Include(p => p.Poster).ToListAsync();
+                if(isStatisticRequest)
+                    posts = await _context.Posts.Include(p => p.Poster).ToListAsync();
+                else
+                    posts = await _context.Posts.Include(p => p.Poster).Where(p => p.IsDeleted != true).ToListAsync();
             }
             var results = posts.Select(x => new PostResponse()
             {

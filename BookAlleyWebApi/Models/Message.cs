@@ -7,7 +7,6 @@
         public required DateTimeOffset Timestamp { get; set; }
         public required string Content { get; set; }
         public required MessageSource Source { get; set; }
-
         public enum MessageSource {
             system,
             poster,
