@@ -3,10 +3,10 @@ package com.example.bookalleyandroid.Models;
 import java.util.ArrayList;
 
 public class Conversation {
-    public String Id;
+    public long Id;
     public String PosterName;
-    public String PosterId;
+    public long PosterId;
     public String FinderName;
-    public String FinderId;
+    public long FinderId;
     public ArrayList<Message> Messages = new ArrayList<>();
 }

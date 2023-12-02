@@ -5,7 +5,7 @@
     <item
         android:id="@+id/chat"
         app:showAsAction="always"
-        android:icon="@drawable/chat"
+        android:actionLayout="@layout/chat_icon_with_badge"
         android:title="Chat"/>
     <item
         android:id="@+id/profile"

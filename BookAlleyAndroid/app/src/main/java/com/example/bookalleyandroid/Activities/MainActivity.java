@@ -1,21 +1,28 @@
 package com.example.bookalleyandroid.Activities;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -24,10 +31,12 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.bookalleyandroid.Models.Message;
 import com.example.bookalleyandroid.Models.Post;
 import com.example.bookalleyandroid.R;
 import com.example.bookalleyandroid.Adapters.PostAdapter;
 import com.example.bookalleyandroid.Utilities.Constance;
+import com.example.bookalleyandroid.Utilities.DatabaseHelper;
 import com.example.bookalleyandroid.Utilities.VolleySingleton;
 import com.example.bookalleyandroid.databinding.ActivityMainBinding;
 
@@ -38,6 +47,7 @@ import org.json.JSONObject;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 
+import static com.example.bookalleyandroid.Utilities.Utilities.GetConversationFromBackEnd;
 import static com.example.bookalleyandroid.Utilities.Utilities.SortPostByDate;
 
 public class MainActivity extends AppCompatActivity implements PostAdapter.OnItemClickListener {
@@ -45,6 +55,9 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.OnIte
     ActivityMainBinding binding;
     private RequestQueue requestQueue;
     ArrayList<Post> posts = new ArrayList<>();
+    private Handler handler = new Handler();
+    private Runnable periodicTask;
+    TextView badgeTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +131,45 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.OnIte
     protected void onResume() {
         super.onResume();
         getPosts();
+
+        //Start periodic task to get Conversations
+        periodicTask = new Runnable() {
+            @Override
+            public void run() {
+                GetConversationFromBackEnd(MainActivity.this, () -> {
+                    //Get conversation by user id from db
+                    SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
+                    Long userId = pref.getLong("USER_ID",0);
+                    DatabaseHelper db = new DatabaseHelper(MainActivity.this);
+                    ArrayList<com.example.bookalleyandroid.Models.Conversation> conversations = db.GetConversationsByUserId(userId);
+                    int unreadCount = 0;
+                    for (com.example.bookalleyandroid.Models.Conversation conversation : conversations) {
+                        for (Message message : conversation.Messages) {
+                             if(message.IsRead == false) unreadCount++;
+                        }
+                    }
+                    if(badgeTextView != null) {
+                        if (unreadCount > 0) {
+                            badgeTextView.setVisibility(View.VISIBLE);
+                            badgeTextView.setText(String.valueOf(unreadCount));
+                        } else {
+                            badgeTextView.setVisibility(View.GONE);
+                        }
+                    }
+                });
+                // Call the same runnable again after a delay
+                handler.postDelayed(this, 5000);
+            }
+        };
+
+        // Start the periodic task
+        handler.postDelayed(periodicTask, 1000); // Start after 1 second
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //Stop periodic task
+        handler.removeCallbacks(periodicTask);
     }
 
     private void getPosts() {
@@ -185,6 +237,20 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.OnIte
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
+
+        MenuItem chatMenuItem = menu.findItem(R.id.chat);
+        View actionView = chatMenuItem.getActionView();
+        if(actionView!= null) {
+            ImageView chatIconImageView = actionView.findViewById(R.id.chatIconImageView);
+            chatIconImageView.setOnClickListener(v -> onOptionsItemSelected(chatMenuItem));
+            badgeTextView = actionView.findViewById(R.id.badgeTextView);
+        } else {
+            actionView = LayoutInflater.from(this).inflate(R.layout.chat_icon_with_badge, null);
+            chatMenuItem.setActionView(actionView);
+            ImageView chatIconImageView = actionView.findViewById(R.id.chatIconImageView);
+            chatIconImageView.setOnClickListener(v -> onOptionsItemSelected(chatMenuItem));
+            badgeTextView = actionView.findViewById(R.id.badgeTextView);
+        }
         return true;
     }
 
@@ -243,6 +309,61 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.OnIte
         showSignInActivity();
     }
     public void onItemClick(Post post) {
+        //Show Popup to confirm starting a conversation
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Confirmation");
+        dialogBuilder.setMessage("Do you want to start a conversation with " + post.PosterName + "?");
+        dialogBuilder.setPositiveButton("Yes", (dialog, which) -> {
+            // Handle the Yes button click
+            // Get session token
+            SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
+            String sessionToken = pref.getString("SESSION_TOKEN","");
+            //Send start conversation request
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https")
+                    .authority(getString(R.string.book_alley_api))
+                    .appendPath("api")
+                    .appendPath("Conversations")
+                    .appendQueryParameter("sessionToken", sessionToken)
+                    .appendQueryParameter("isStatisticRequest", "false");
 
+            String uri = builder.build().toString();
+            Log.d("Uri", "Handle starting new conversation: " + uri);
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("posterId", post.PosterId);
+                jsonObject.put("postId", post.Id);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e("Start Conversation Error", "onErrorResponse: " + e.getMessage());
+            }
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, jsonObject, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("Response", "Start Conversation onResponse: " + response.toString());
+                    try {
+                        long id = response.getLong("conversationId");
+                        Intent intent = new Intent(MainActivity.this, ConversationActivity.class);
+                        intent.putExtra("id", id);
+                        startActivity(intent);
+                    } catch (JSONException e) {
+                        Log.e("Start Conversation Error", "onResponse: " + e.getMessage());
+                    }
+                    dialog.dismiss();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("Start Conversation Error", "onErrorResponse: " + error.getMessage());
+                    Toast.makeText(MainActivity.this, "Start conversation failed. Please check your connection!", Toast.LENGTH_SHORT).show();
+                }
+            });
+            requestQueue.add(request);
+        });
+        dialogBuilder.setNegativeButton("No", (dialog, which) -> {
+            // Handle the No button click
+            dialog.dismiss(); // Dismiss the dialog
+        });
+        dialogBuilder.create().show();
     }
 }

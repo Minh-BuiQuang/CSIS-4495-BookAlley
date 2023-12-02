@@ -19,6 +19,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="John"
+            android:textColor="#000000"
             app:layout_constraintEnd_toStartOf="@+id/timeStampTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -28,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="10/20/2023"
-            android:textColor="#636363"
+            android:textColor="#BCBCBC"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,10 +40,24 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="Hey, is your book still available?"
-            android:textColor="#737373"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="#888888"
+            app:layout_constraintEnd_toStartOf="@+id/badgeTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nameTextView" />
+
+        <TextView
+            android:id="@+id/badgeTextView"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/badge_background"
+            android:gravity="center"
+            android:padding="2dp"
+            android:text="88"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/timeStampTextView" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
