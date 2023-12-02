@@ -13,6 +13,10 @@
         android:icon="@drawable/profile"
         android:title="My Posts"/>
     <item
+        android:id="@+id/statistic_option"
+        app:showAsAction="never"
+        android:title="Popular Books" />
+    <item
         android:id="@+id/logout_option"
         app:showAsAction="never"
         android:title="Logout" />

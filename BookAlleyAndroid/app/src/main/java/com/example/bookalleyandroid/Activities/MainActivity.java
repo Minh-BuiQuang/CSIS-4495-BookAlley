@@ -262,6 +262,8 @@ public class MainActivity extends AppCompatActivity implements PostAdapter.OnIte
             startActivity(new Intent(this, ConversationActivity.class));
         } else if(item.getItemId() == R.id.profile) {
             startActivity(new Intent(this, MyPostActivity.class));
+        } else if(item.getItemId() == R.id.statistic_option) {
+            startActivity(new Intent(this, StatisticActivity.class));
         }
         return true;
     }

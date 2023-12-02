@@ -1,19 +1,13 @@
 package com.example.bookalleyandroid.Utilities;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.example.bookalleyandroid.Activities.ConversationActivity;
-import com.example.bookalleyandroid.Activities.MessageActivity;
-import com.example.bookalleyandroid.Adapters.ConversationAdapter;
-import com.example.bookalleyandroid.Models.Book;
 import com.example.bookalleyandroid.Models.Conversation;
 import com.example.bookalleyandroid.Models.Message;
 import com.example.bookalleyandroid.Models.Post;
@@ -40,8 +34,37 @@ public class Utilities {
             }
         });
     }
+    public static void SortPostByQuantity(ArrayList<Post> posts) {
+
+        // Use Collections.sort() with a custom comparator
+        Collections.sort(posts, new Comparator<Post>() {
+            @Override
+            public int compare(Post post1, Post post2) {
+                // Compare books based on their createdDate
+                return post2.Quantity - post1.Quantity;
+            }
+        });
+    }
+    public static ArrayList<Post> GroupPostByISBN(ArrayList<Post> posts){
+        ArrayList<Post> groupedPosts = new ArrayList<>();
+        for (Post post : posts) {
+            boolean isExist = false;
+            for (Post groupedPost : groupedPosts) {
+                if(groupedPost.ISBN.equals(post.ISBN)) {
+                    isExist = true;
+                    groupedPost.Quantity ++;
+                    break;
+                }
+            }
+            if(!isExist) {
+                post.Quantity = 1;
+                groupedPosts.add(post);
+            }
+        }
+        return groupedPosts;
+    }
+
     public static OffsetDateTime ToJavaTime(String cSharpDateTimeOffset) {
-        // C# DateTimeOffset format is "yyyy-MM-ddTHH:mm:ss.ssszzz" (e.g., "2023-01-01T12:34:56.789+05:30")
         //Break the string into two parts: the date/time part and the offset part
         String[] parts = cSharpDateTimeOffset.split("\\+");
         String dateTimePart = parts[0];

@@ -13,4 +13,5 @@ public class Post {
     public String Location;
     public String Note;
     public OffsetDateTime DatePosted;
+    public int Quantity;
 }

@@ -13,6 +13,9 @@
         android:theme="@style/Theme.BookAlleyAndroid"
         tools:targetApi="31">
         <activity
+            android:name=".Activities.StatisticActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.MyPostActivity"
             android:exported="false" />
         <activity

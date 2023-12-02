@@ -63,6 +63,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         holder.view.setOnClickListener(v -> {
             onItemClickListener.onItemClick(post);
         });
+
+        if(post.Quantity > 0) {
+            holder.posterTextView.setText("Shared Times: " + post.Quantity);
+            holder.locationTextView.setVisibility(View.GONE);
+            holder.timeTextView.setVisibility(View.GONE);
+            holder.noteTextView.setVisibility(View.GONE);
+        }
     }
 
     @Override
