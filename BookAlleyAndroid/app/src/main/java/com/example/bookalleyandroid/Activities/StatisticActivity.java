@@ -68,17 +68,10 @@ public class StatisticActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONArray response) {
                 Log.d("Response", "onResponse: " + response.toString());
-                // Get user id
-                SharedPreferences pref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
-                Long userId = pref.getLong("USER_ID",0);
-
                 allTimePosts.clear();
                 for (int i = 0; i < response.length(); i++) {
                     try {
                         JSONObject jsonObject = response.getJSONObject(i);
-                        //Skip posts created by current user
-                        if(jsonObject.getLong("posterId") == userId) continue;
-
                         Post post = new Post();
                         post.Id = jsonObject.getLong("id");
                         post.PosterName = jsonObject.getString("posterName");

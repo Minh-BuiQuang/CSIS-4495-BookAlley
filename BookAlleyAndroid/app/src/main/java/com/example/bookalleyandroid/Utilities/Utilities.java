@@ -52,7 +52,7 @@ public class Utilities {
             for (Post groupedPost : groupedPosts) {
                 if(groupedPost.ISBN.equals(post.ISBN)) {
                     isExist = true;
-                    groupedPost.Quantity ++;
+                    groupedPost.Quantity++;
                     break;
                 }
             }
