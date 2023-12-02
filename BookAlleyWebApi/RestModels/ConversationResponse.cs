@@ -9,6 +9,6 @@ namespace BookAlleyWebApi.RestModels
         public long FinderId { get; set; }  
         public string PosterName { get; set; }
         public string FinderName { get; set; }
-        public ICollection<Message> Messages { get; set; }
+        public ICollection<MessageResponse> Messages { get; set; }
     }
 }

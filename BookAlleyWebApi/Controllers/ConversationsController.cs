@@ -52,14 +52,36 @@ namespace BookAlleyWebApi.Controllers
                     FinderName = conversation.Finder.Name,
                     PosterId = conversation.PosterId,
                     PosterName = conversation.Poster.Name,
-                    Messages = conversation.Messages
+                    Messages = conversation.Messages.Select(m => new MessageResponse()
+                    {
+                        Id = m.Id,
+                        Content = m.Content,
+                        Source = GetMessageSource(m.Source),
+                        Timestamp = m.Timestamp,
+                        ConversationId = m.Conversation.Id
+                    }).ToList()
                 };
                 results.Add(result);
             }
             return results;
         }
+
+        private string GetMessageSource(Message.MessageSource source)
+        {
+            switch (source)
+            {
+                case Message.MessageSource.finder:
+                    return "finder";
+                case Message.MessageSource.poster:
+                    return "poster";
+                case Message.MessageSource.system:
+                default:
+                    return "system";
+            }
+        }
+
         [HttpPost]
-        public async Task<ActionResult<long>> PostConversation([FromQuery] Guid sessionToken, [FromBody] CreateConversationRequest body)
+        public async Task<ActionResult> PostConversation([FromQuery] Guid sessionToken, [FromBody] CreateConversationRequest body)
         {
             if (_context.Conversations == null)
             {
@@ -75,7 +97,7 @@ namespace BookAlleyWebApi.Controllers
             //Get conversation by user Id and poster Id
             var conversation = await _context.Conversations.FirstOrDefaultAsync(c => c.FinderId == user.Id && c.PosterId == body.PosterId);
             //Return conversation Id if conversation exists
-            if (conversation != null) return conversation.Id;
+            if (conversation != null) return Ok(new { conversationId = conversation.Id });
             //Create new conversation if conversation does not exist
             conversation = new Conversation()
             {
@@ -92,14 +114,13 @@ namespace BookAlleyWebApi.Controllers
             var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == body.PostId);
             _context.Messages.Add(new Message()
             {
-                Content = user.Name + "started the conversation with " + poster?.Name + " about the book: " + post?.BookTitle,
+                Content = user.Name + " started the conversation with " + poster?.Name + " about the book: " + post?.BookTitle,
                 Source = Message.MessageSource.system,
                 Timestamp = DateTime.Now,
                 Conversation = conversation
             });
             await _context.SaveChangesAsync();
-            return conversation.Id;
+            return Ok(new { conversationId = conversation.Id});
         }
-        
     }
 }

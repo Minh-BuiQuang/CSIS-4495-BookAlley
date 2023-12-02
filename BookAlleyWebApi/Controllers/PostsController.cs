@@ -24,7 +24,7 @@ namespace BookAlleyWebApi.Controllers
 
         // GET: api/Posts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostResponse>>> GetPosts([FromQuery]Guid? SessionToken, [FromBody] bool isStatisticRequest)
+        public async Task<ActionResult<IEnumerable<PostResponse>>> GetPosts([FromQuery]Guid? SessionToken, [FromQuery] bool isStatisticRequest)
         {
             List<Post> posts = new();
 

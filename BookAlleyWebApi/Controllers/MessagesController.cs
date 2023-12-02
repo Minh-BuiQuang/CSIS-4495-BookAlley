@@ -61,11 +61,11 @@ namespace BookAlleyWebApi.Controllers
                 Content = messageRequest.Content,
                 Conversation = conversation,
                 Source = ToMessageSource(messageRequest.Source),
-                Timestamp = messageRequest.Timestamp
+                Timestamp = DateTimeOffset.Now
             };
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("GetMessage", new { id = messageRequest.Id }, messageRequest);
+            return Ok(new { message = "Message sent!" });
         }
 
         private Message.MessageSource ToMessageSource(string source)
